@@ -1,3 +1,5 @@
+# instagram-clone-backend
+This the repository that contains the backend part of the instagram clone. This backend is developed using NestJs framework.
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
