@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
@@ -24,8 +24,14 @@ export class User extends Document {
     @Prop()
     photo: string;
 
+    @Prop()
+    bio: string;
+
     @Prop({ type: Object })
     metaData: Object;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId })
+    posts: mongoose.Schema.Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

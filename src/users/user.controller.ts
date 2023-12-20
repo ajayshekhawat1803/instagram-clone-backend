@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { UserService } from './users.service';
 import { UpdateUserDto } from './dto/users.dto';
 import { Types } from 'mongoose';
@@ -13,7 +13,7 @@ export class UserController {
     @Patch('edit/:id')
     async editUser(@Body() data: UpdateUserDto, @Param('id') id: Types.ObjectId, @Req() req) {
         try {
-            const result = await this.userServices.editUser(data, id)
+            const result = await this.userServices.editUser(data, id,req)
             if (result) {
                 return {
                     data: result,

@@ -7,6 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import * as session from 'express-session';
 import { AuthMiddleware } from './auth/auth.middleware';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
     }),
     AuthModule,
     UserModule,
+    PostsModule
   ],
   controllers: [AppController],
   providers: [AppService],

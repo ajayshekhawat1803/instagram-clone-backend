@@ -11,6 +11,7 @@ export class AuthController {
         try {
             const result = await this.authService.validateUser(data)
             if (result) {
+                req.res.status(200)
                 return {
                     data: result,
                     message: `Successful login`

@@ -1,30 +1,35 @@
-import { HttpStatus, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { User } from './model/users.model';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from 'src/auth/dto/auth.dto';
 import { UpdateUserDto } from './dto/users.dto';
+import { Posts } from 'src/posts/model/posts.model';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectModel(User.name)
         private readonly UserModel: Model<User>,
+        @InjectModel(Posts.name)
+        private readonly PostsModel: Model<Posts>
     ) { }
 
     // Register User
-    async registerUser(userData: CreateUserDto): Promise<object | null> {
+    async registerUser(userData): Promise<object | null> {
         const { username, password, name, email } = userData;
 
         const check = await this.UserModel.find({ $or: [{ username: username }, { email: email }] })
         if (check.length > 0) {
             check.forEach((user) => {
                 if (user.email === email) {
-                    throw new UnprocessableEntityException(`email already registered`)
+                    // throw new UnprocessableEntityException(`email already registered`)
+                    throw new HttpException(`email already registered`, HttpStatus.CONFLICT)
                 }
                 if (user.username === username) {
-                    throw new UnprocessableEntityException(`username already taken`)
+                    // throw new UnprocessableEntityException(`username already taken`)
+                    throw new HttpException(`username already taken`, HttpStatus.CONFLICT)
                 }
             })
             return null
@@ -35,20 +40,32 @@ export class UserService {
             name,
             email,
             password: hashedPassword,
-            username
+            username,
+            photo: '',
+            bio: ''
         });
-        return result;
+        const posts = await this.PostsModel.create({ user: result._id })
+
+        // Use bracket notation to add the 'posts' property
+        result.posts = posts._id;
+
+        // Save the updated user
+        await result.save();
+
+        return result
     }
 
 
     // Update User's details
-    async editUser(data: UpdateUserDto, id): Promise<Object | null> {
+    async editUser(data: UpdateUserDto, id, req): Promise<Object | null> {
         try {
             id = new Types.ObjectId(id)
         } catch (error) {
             throw new UnprocessableEntityException(`Provide valid User ID`)
         }
-
+        if (req.user.user._id !== id.toString()) {
+            throw new UnauthorizedException(`Unauthorised to update User`)
+        }
         const check = await this.UserModel.findOne({ _id: id })
 
         if (!check) {
@@ -63,7 +80,7 @@ export class UserService {
         }
         // console.log(fieldsTOUpdate);
         if (fieldsTOUpdate['username'] || fieldsTOUpdate['email']) {
-            const check = await this.UserModel.find({ $or: [{ username: fieldsTOUpdate['username'] }, { email: fieldsTOUpdate['email'] }] })
+            const check = await this.UserModel.find({ $or: [{ username: fieldsTOUpdate['username'], _id: { $ne: id } }, { email: fieldsTOUpdate['email'], _id: { $ne: id } }] })
             if (check.length > 0) {
                 check.forEach((user) => {
                     if (user.email === fieldsTOUpdate['email']) {
@@ -92,13 +109,18 @@ export class UserService {
             throw new UnprocessableEntityException(`Please provide a valid User ID`)
         }
         const check = await this.UserModel.findById(id)
+        console.log('-----------------', check);
         if (!check) {
-            return null;
+            throw new HttpException(`No used Found`, HttpStatus.NOT_FOUND)
         }
+        console.log(check);
+
         return check;
     }
 
     async getUserByUsername(username): Promise<Object | null> {
+        console.log('--------');
+
         const check = await this.UserModel.findOne({ username: username })
         if (!check) {
             throw new NotFoundException(`No user found`)
