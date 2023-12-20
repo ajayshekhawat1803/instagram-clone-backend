@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import * as session from 'express-session';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { PostsModule } from './posts/posts.module';
+import { followersModule } from './followers/followers.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { PostsModule } from './posts/posts.module';
     }),
     AuthModule,
     UserModule,
-    PostsModule
+    PostsModule,
+    followersModule
   ],
   controllers: [AppController],
   providers: [AppService],

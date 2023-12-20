@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, HttpStatus, Post, Req, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { PostsService } from "./posts.service";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from 'multer';
@@ -16,7 +16,7 @@ export class PostsController {
   @UseInterceptors(FilesInterceptor('posts', 5, {
     storage: diskStorage({
       destination: (req, file, callback) => {
-        const userId = req.user.user?._id;
+        const userId = req.user?._id;
         if (userId) {
           const destination = `./uploads/${userId}/${file.fieldname}`;
           if (!fs.existsSync(destination)) {
@@ -48,7 +48,28 @@ export class PostsController {
     },
   }))
   async creaePost(@Req() req, @Body() data: CreatePostDto, @UploadedFiles() files) {
-    console.log(files);
-    return this.PostsService.createPost(req?.user?.user?._id, data, files)
+    // console.log(files);
+    try {
+      const result = await this.PostsService.createPost(req?.user?._id, data, files)
+      if (result) {
+        return {
+          data: result,
+          message: `Successfully Posted`
+        }
+      }
+      else {
+        req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return {
+          data: null,
+          message: `Something went wrong`
+        }
+      }
+    } catch (error) {
+      req.res.status(error.status || 500)
+      return {
+        data: null,
+        message: `${error.message}`
+      }
+    }
   }
 }

@@ -19,6 +19,7 @@ export class PostsService {
         });
 
         const currentPost = {
+            postID: new Types.ObjectId(),
             caption,
             files: posts,
             metaData: {

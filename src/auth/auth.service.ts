@@ -32,14 +32,17 @@ export class AuthService {
         if (!passwordValid) {
             throw new UnauthorizedException('Password creditionals are not valid');
         }
-        const payload = { user }
+        const payload = { username, _id: user._id, email: user.email }
         const token = this.jwtServie.sign(payload, { expiresIn: '5h' })
 
         if (user && passwordValid && token) {
             delete user.password;
             return {
                 access_token: token,
-                user
+                _id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email
             };
         }
         return null;

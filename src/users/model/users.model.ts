@@ -32,6 +32,21 @@ export class User extends Document {
 
     @Prop({ type: mongoose.Schema.Types.ObjectId })
     posts: mongoose.Schema.Types.ObjectId;
+
+    @Prop({ type: Array, default: [] })
+    followers: Array<mongoose.Schema.Types.ObjectId>;
+
+    @Prop({ type: Array, default: [] })
+    followings: Array<mongoose.Schema.Types.ObjectId>;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId })
+    messages: mongoose.Schema.Types.ObjectId;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId })
+    feed: mongoose.Schema.Types.ObjectId;
+
+    @Prop({ type: mongoose.Schema.Types.ObjectId })
+    stories: mongoose.Schema.Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
