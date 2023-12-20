@@ -108,23 +108,119 @@ export class UserService {
         } catch (error) {
             throw new UnprocessableEntityException(`Please provide a valid User ID`)
         }
-        const check = await this.UserModel.findById(id)
-        console.log('-----------------', check);
-        if (!check) {
+        const pipeline = [
+            {
+                $match: {
+                    _id: id
+                }
+            },
+            {
+                $lookup: {
+                    from: 'posts',
+                    localField: 'posts',
+                    foreignField: '_id',
+                    as: 'userPosts'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$userPosts',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    name: { $first: '$name' },
+                    password: { $first: '$password' },
+                    email: { $first: '$email' },
+                    username: { $first: '$username' },
+                    photo: { $first: '$photo' },
+                    bio: { $first: '$bio' },
+                    followers: { $first: '$followers' },
+                    followings: { $first: '$followings' },
+                    createdAt: { $first: '$createdAt' },
+                    updatedAt: { $first: '$updatedAt' },
+                    posts: { $push: '$userPosts' }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    username: 1,
+                    photo: 1,
+                    bio: 1,
+                    followers: 1,
+                    followings: 1,
+                    posts: { $ifNull: ['$posts', []] } // Handle potential null values
+                }
+            }
+        ];
+        const check = await this.UserModel.aggregate(pipeline).exec()
+        if (!check[0]) {
             throw new HttpException(`No used Found`, HttpStatus.NOT_FOUND)
         }
-        console.log(check);
-
-        return check;
+        return check[0];
     }
 
     async getUserByUsername(username): Promise<Object | null> {
-        console.log('--------');
+        const pipeline = [
+            {
+                $match: {
+                    username: username
+                }
+            },
+            {
+                $lookup: {
+                    from: 'posts',
+                    localField: 'posts',
+                    foreignField: '_id',
+                    as: 'userPosts'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$userPosts',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    name: { $first: '$name' },
+                    password: { $first: '$password' },
+                    email: { $first: '$email' },
+                    username: { $first: '$username' },
+                    photo: { $first: '$photo' },
+                    bio: { $first: '$bio' },
+                    followers: { $first: '$followers' },
+                    followings: { $first: '$followings' },
+                    createdAt: { $first: '$createdAt' },
+                    updatedAt: { $first: '$updatedAt' },
+                    posts: { $push: '$userPosts' }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    username: 1,
+                    photo: 1,
+                    bio: 1,
+                    followers: 1,
+                    followings: 1,
+                    posts: { $ifNull: ['$posts', []] } // Handle potential null values
+                }
+            }
+        ];
+        const check = await this.UserModel.aggregate(pipeline).exec()
 
-        const check = await this.UserModel.findOne({ username: username })
-        if (!check) {
+        if (!check[0]) {
             throw new NotFoundException(`No user found`)
         }
-        return check;
+        return check[0];
     }
 }
