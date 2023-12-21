@@ -108,7 +108,7 @@ export class UserService {
         } catch (error) {
             throw new UnprocessableEntityException(`Please provide a valid User ID`)
         }
-        const pipeline = [
+       const pipeline = [
             {
                 $match: {
                     _id: id
@@ -119,12 +119,12 @@ export class UserService {
                     from: 'posts',
                     localField: 'posts',
                     foreignField: '_id',
-                    as: 'userPosts'
+                    as: 'posts'
                 }
             },
             {
                 $unwind: {
-                    path: '$userPosts',
+                    path: '$posts',
                     preserveNullAndEmptyArrays: true
                 }
             },
@@ -141,8 +141,17 @@ export class UserService {
                     followings: { $first: '$followings' },
                     createdAt: { $first: '$createdAt' },
                     updatedAt: { $first: '$updatedAt' },
-                    posts: { $push: '$userPosts' }
+                    posts: { $push: '$posts.posts' }
                 }
+            },
+            {
+                $unwind: {
+                    path: '$posts',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $replaceRoot: { newRoot: { $mergeObjects: [ '$$ROOT', { posts: '$posts' } ] } }
             },
             {
                 $project: {
@@ -154,10 +163,11 @@ export class UserService {
                     bio: 1,
                     followers: 1,
                     followings: 1,
-                    posts: { $ifNull: ['$posts', []] } // Handle potential null values
+                    posts: 1
                 }
             }
         ];
+        
         const check = await this.UserModel.aggregate(pipeline).exec()
         if (!check[0]) {
             throw new HttpException(`No used Found`, HttpStatus.NOT_FOUND)
@@ -177,12 +187,12 @@ export class UserService {
                     from: 'posts',
                     localField: 'posts',
                     foreignField: '_id',
-                    as: 'userPosts'
+                    as: 'posts'
                 }
             },
             {
                 $unwind: {
-                    path: '$userPosts',
+                    path: '$posts',
                     preserveNullAndEmptyArrays: true
                 }
             },
@@ -199,8 +209,17 @@ export class UserService {
                     followings: { $first: '$followings' },
                     createdAt: { $first: '$createdAt' },
                     updatedAt: { $first: '$updatedAt' },
-                    posts: { $push: '$userPosts' }
+                    posts: { $push: '$posts.posts' }
                 }
+            },
+            {
+                $unwind: {
+                    path: '$posts',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $replaceRoot: { newRoot: { $mergeObjects: [ '$$ROOT', { posts: '$posts' } ] } }
             },
             {
                 $project: {
@@ -212,10 +231,11 @@ export class UserService {
                     bio: 1,
                     followers: 1,
                     followings: 1,
-                    posts: { $ifNull: ['$posts', []] } // Handle potential null values
+                    posts: 1
                 }
             }
         ];
+        
         const check = await this.UserModel.aggregate(pipeline).exec()
 
         if (!check[0]) {

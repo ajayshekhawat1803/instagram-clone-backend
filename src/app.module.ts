@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { UserModule } from './users/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import * as path from 'path';
 import { AuthModule } from './auth/auth.module';
 import * as session from 'express-session';
 import { AuthMiddleware } from './auth/auth.middleware';
@@ -19,6 +21,10 @@ import { followersModule } from './followers/followers.module';
     }),
     MongooseModule.forRoot(process.env.MONGO_DSN, {
       dbName: process.env.MONGO_DB_NAME,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.resolve(__dirname, '../uploads'), // Change this path accordingly
+      serveRoot: '/uploads',
     }),
     AuthModule,
     UserModule,
