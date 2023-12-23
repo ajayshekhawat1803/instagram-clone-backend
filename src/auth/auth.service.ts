@@ -1,8 +1,8 @@
-import { HttpException, HttpStatus, Injectable, NotAcceptableException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotAcceptableException, NotFoundException, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { CreateUserDto, LoginDto } from './dto/auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/users/model/users.model';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/users/users.service';
@@ -47,4 +47,21 @@ export class AuthService {
         }
         return null;
     }
+
+
+    async AddAdditionalInfo(data) {
+        let { photo, dob, mobile, bio, id } = data;
+        console.log(data);
+        try {
+            id=new Types.ObjectId(id)
+        } catch (error) {
+            throw new UnprocessableEntityException(`Invalid User ID`)
+        }
+        const result = await this.userModel.findByIdAndUpdate(id, { photo, dob, mobile, bio }, { new: true }).exec()
+        if (!result) {
+            throw new NotFoundException(`No user found with the given id`)
+        }
+        return true;
+    }
+    
 }

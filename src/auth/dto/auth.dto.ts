@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import mongoose from "mongoose";
 
 export class LoginDto {
     @IsNotEmpty()
@@ -25,4 +26,16 @@ export class CreateUserDto {
     @IsNotEmpty()
     @IsString()
     password: string
+}
+
+export class AddDetailsDto {
+    @IsOptional()
+    // @IsNumber()
+    mobile: Number;
+
+    @IsOptional()
+    dob: Date;
+
+    @IsOptional()
+    bio: string;
 }

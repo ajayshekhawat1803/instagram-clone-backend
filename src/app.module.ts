@@ -42,7 +42,7 @@ export class AppModule {
       .forRoutes({ path: '*', method: RequestMethod.ALL });
 
     consumer.apply(AuthMiddleware)
-      .exclude('/auth/login', '/auth/signup', '/health', '/auth/setupPassword/:email')
+      .exclude('/auth/login', '/auth/signup', '/health', '/auth/setupPassword/:email','/auth/signup/add-details/:id')
       .forRoutes('*');
   }
 }
