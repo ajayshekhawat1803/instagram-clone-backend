@@ -14,8 +14,16 @@ export class PostsController {
   @Post('create')
   @UseInterceptors(FilesInterceptor('posts', 5, multerConfig))
   async creaePost(@Req() req, @Body() data: CreatePostDto, @UploadedFiles() files) {
-    // console.log(files);
     try {
+      console.log(files,data);
+      
+      if (files?.length < 1) {
+        req.res.status(422)
+        return {
+          data: null,
+          message: `Upload at least 1 image`
+        }
+      }
       const result = await this.PostsService.createPost(req?.user?._id, data, files)
       if (result) {
         return {
@@ -31,6 +39,8 @@ export class PostsController {
         }
       }
     } catch (error) {
+      console.log("catch chala h");
+      
       req.res.status(error.status || 500)
       return {
         data: null,

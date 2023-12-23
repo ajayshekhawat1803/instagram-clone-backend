@@ -1,3 +1,4 @@
+import { UnprocessableEntityException } from '@nestjs/common';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -32,7 +33,7 @@ export const multerConfig = {
     if (allowedMimes.includes(file.mimetype)) {
       callback(null, true);
     } else {
-      callback(new Error('Invalid file type'), false);
+      callback(new UnprocessableEntityException('file not acceptable'), false);
     }
   },
 };
