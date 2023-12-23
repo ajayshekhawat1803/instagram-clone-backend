@@ -11,6 +11,7 @@ import * as session from 'express-session';
 import { AuthMiddleware } from './auth/auth.middleware';
 import { PostsModule } from './posts/posts.module';
 import { followersModule } from './followers/followers.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { followersModule } from './followers/followers.module';
       rootPath: path.resolve(__dirname, '../uploads'), // Change this path accordingly
       serveRoot: '/uploads',
     }),
+    HealthModule,
     AuthModule,
     UserModule,
     PostsModule,
