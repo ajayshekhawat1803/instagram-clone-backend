@@ -11,7 +11,7 @@ export class followersController {
     async startFollowing(@Req() req, @Body() data: AddNewFollowerDto) {
         try {
             const result = await this.followersService.startFollowing(req, data)
-            if (result || result === 0) {
+            if (result) {
                 req.res.status(HttpStatus.OK)
                 return {
                     data: result,
@@ -39,7 +39,7 @@ export class followersController {
     async removeFollowing(@Req() req, @Body() data: AddNewFollowerDto) {
         try {
             const result = await this.followersService.RemoveFollowing(req, data)
-            if (result || result === 0) {
+            if (result ) {
                 req.res.status(HttpStatus.OK)
                 return {
                     data: result,

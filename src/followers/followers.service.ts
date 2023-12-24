@@ -10,7 +10,7 @@ export class followersService {
     // Method to start following the other user
     async startFollowing(req, data) {
         const { self, other } = data;
-        if (req.user._id !== data.self) {
+        if (req.user._id !== self) {
             throw new ForbiddenException(`Access Denied`)
         }
 
@@ -36,8 +36,7 @@ export class followersService {
             )
             throw new UnprocessableEntityException(`Other User Does not exists in real`)
         }
-        console.log(UpdateOther?.followers?.length);
-        return UpdateOther?.followers?.length
+        return UpdateOther?.followers
     }
 
 
@@ -68,7 +67,7 @@ export class followersService {
             )
             throw new UnprocessableEntityException(`Other User Does not exists in real`)
         }
-        return UpdateOther?.followers?.length
+        return UpdateOther?.followers
     }
 
 
@@ -79,7 +78,47 @@ export class followersService {
         } catch (error) {
             throw new UnprocessableEntityException(`Invalid User Id`)
         }
-        const followers = await this.userModel.findOne({ _id: id },{followers:1,_id:0})
+        const pipeline = [
+            {
+              $match: { _id: id }
+            },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'followers',
+                foreignField: '_id',
+                as: 'followers'
+              }
+            },
+            {
+              $unwind: '$followers'
+            },
+            {
+              $project: {
+                'followers._id': 1,
+                'followers.name': 1,
+                'followers.username': 1,
+                'followers.photo': 1,
+                _id: 0
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                followers: { $push: '$followers' }
+              }
+            },
+            {
+              $project: {
+                _id: 0,
+                followers: 1
+              }
+            }
+          ];
+        const userWithFollowers = await this.userModel.aggregate(pipeline);
+        
+        const followers = userWithFollowers[0];
+
         if (!followers) {
             throw new NotFoundException(`No User Found`)
         }
