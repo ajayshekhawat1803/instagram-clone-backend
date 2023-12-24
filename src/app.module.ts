@@ -12,6 +12,7 @@ import { AuthMiddleware } from './auth/auth.middleware';
 import { PostsModule } from './posts/posts.module';
 import { followersModule } from './followers/followers.module';
 import { HealthModule } from './health/health.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { HealthModule } from './health/health.module';
     AuthModule,
     UserModule,
     PostsModule,
-    followersModule
+    followersModule,
+    SearchModule
   ],
   controllers: [AppController],
   providers: [AppService],
