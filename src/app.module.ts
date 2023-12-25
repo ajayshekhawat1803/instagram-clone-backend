@@ -13,6 +13,7 @@ import { PostsModule } from './posts/posts.module';
 import { followersModule } from './followers/followers.module';
 import { HealthModule } from './health/health.module';
 import { SearchModule } from './search/search.module';
+import { followingsModule } from './followings/followings.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SearchModule } from './search/search.module';
     UserModule,
     PostsModule,
     followersModule,
+    followingsModule,
     SearchModule
   ],
   controllers: [AppController],
