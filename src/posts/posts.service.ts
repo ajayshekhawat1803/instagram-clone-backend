@@ -26,7 +26,7 @@ export class PostsService {
             caption,
             files: posts,
             metaData: {
-                likes: 0,
+                likes: [],
                 Comment: []
             }
         }

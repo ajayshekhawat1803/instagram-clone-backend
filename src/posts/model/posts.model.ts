@@ -11,7 +11,7 @@ export class Posts extends Document {
         caption: string,
         files: string[],
         metaData: {
-            likes: number,
+            likes: Array<mongoose.Schema.Types.ObjectId>,
             commments: Array<{ comment: string, user: mongoose.Schema.Types.ObjectId }>
         }
     }>

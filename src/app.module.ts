@@ -14,6 +14,7 @@ import { followersModule } from './followers/followers.module';
 import { HealthModule } from './health/health.module';
 import { SearchModule } from './search/search.module';
 import { followingsModule } from './followings/followings.module';
+import { LikesModule } from './like-unlike/Likes.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { followingsModule } from './followings/followings.module';
     PostsModule,
     followersModule,
     followingsModule,
-    SearchModule
+    SearchModule,
+    LikesModule
   ],
   controllers: [AppController],
   providers: [AppService],
