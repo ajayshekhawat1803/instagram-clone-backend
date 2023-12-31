@@ -10,23 +10,24 @@ export class LikesService {
     ) { }
 
     async handleLikes(reqUser, postId, postOwnerId) {
-        const check = await this.PostsModel.findOne(
-            {
-                user: postOwnerId,
-                'posts.postID': new Types.ObjectId(postId),
-                'posts.metaData.likes': { $elemMatch: { $eq: reqUser } }
-            }
-        )
+
+        const check = await this.PostsModel.findOne({
+            user: postOwnerId,
+            _id: new Types.ObjectId(postId),
+            'metaData.likes': { $elemMatch: { $eq: reqUser } }
+        });
+
         let postDocument;
         if (check) {
+            console.log("Like removed");
             postDocument = await this.PostsModel.findOneAndUpdate(
                 {
                     user: postOwnerId,
-                    'posts.postID': new Types.ObjectId(postId)
+                    '_id': new Types.ObjectId(postId)
                 },
                 {
                     $pull: {
-                        'posts.$.metaData.likes': reqUser
+                        'metaData.likes': reqUser
                     }
                 },
                 {
@@ -35,14 +36,16 @@ export class LikesService {
             );
         }
         else {
+            console.log("Like added");
+
             postDocument = await this.PostsModel.findOneAndUpdate(
                 {
                     user: postOwnerId,
-                    'posts.postID': new Types.ObjectId(postId)
+                    '_id': new Types.ObjectId(postId)
                 },
                 {
                     $addToSet: {
-                        'posts.$.metaData.likes': reqUser
+                        'metaData.likes': reqUser
                     }
                 },
                 {
@@ -51,14 +54,9 @@ export class LikesService {
             );
         }
 
-        // console.log(postDocument);
         if (!postDocument) {
             throw new NotFoundException(`No post found`)
         }
-        const filteredPosts = postDocument.posts.filter(post => post.postID.toString() === postId);
-
-        console.log(filteredPosts[0].metaData.likes);
-    
-        return filteredPosts[0];
+        return postDocument
     }
 }

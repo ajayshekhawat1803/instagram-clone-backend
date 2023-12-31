@@ -61,7 +61,7 @@ export class PostsController {
       if (!checkUserExistence) {
         throw new NotFoundException(`No user found with ${username} username`)
       }
-      const posts = await this.PostsService.getAllPostsByUsername(username)
+      const posts = await this.PostsService.getAllPostsByUserID(checkUserExistence._id)
       if (posts) {
         return {
           data: posts,

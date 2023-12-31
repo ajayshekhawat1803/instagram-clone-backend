@@ -6,15 +6,17 @@ export class Posts extends Document {
     @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
     user: mongoose.Schema.Types.ObjectId;
 
-    @Prop({ required: true, default: [] })
-    posts: Array<{
-        caption: string,
-        files: string[],
-        metaData: {
-            likes: Array<mongoose.Schema.Types.ObjectId>,
-            commments: Array<{ comment: string, user: mongoose.Schema.Types.ObjectId }>
-        }
-    }>
+    @Prop()
+    caption: string;
+
+    @Prop()
+    files: string[];
+
+    @Prop({ type: {}, default: { likes: [], comments: [] } })
+    metaData: {
+        likes: Array<mongoose.Schema.Types.ObjectId>,
+        commments: Array<{ comment: string, user: mongoose.Schema.Types.ObjectId }>
+    }
 
 }
 

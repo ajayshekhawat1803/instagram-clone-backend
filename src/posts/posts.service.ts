@@ -10,110 +10,64 @@ export class PostsService {
         @InjectModel(Posts.name) private readonly postsModel: Model<Posts>,
         @InjectModel(User.name) private readonly userModel: Model<User>) { }
 
+    // Create the post
     async createPost(userfromrequest, data, Postfiles) {
         let { user, caption } = data
         if (userfromrequest !== user) {
             throw new UnauthorizedException(`Unauthorised to add posts`)
         }
         user = new Types.ObjectId(user)
-        let posts = []
+        let files = []
         Postfiles.forEach(file => {
-            posts.push(file.filename)
+            files.push(file.filename)
         });
 
         const currentPost = {
-            postID: new Types.ObjectId(),
+            user: new Types.ObjectId(user),
             caption,
-            files: posts,
+            files: files,
             metaData: {
                 likes: [],
-                Comment: []
+                comments: []
             }
         }
-        const result = await this.postsModel.findOneAndUpdate(
-            { user: user },
-            { $push: { posts: currentPost } },
-            { new: true }
-        )
-        if (!result) {
-            throw new NotFoundException(`No User Found`)
+        const result = await this.postsModel.create(currentPost)
+
+        if (result._id) {
+            const userUpdate = await this.userModel.findByIdAndUpdate(
+                user,
+                { $push: { posts: result._id } },
+                { new: true }
+            );
         }
         return result
     }
 
-
-    async getAllPostsByUsername(username) {
+    async getAllPostsByUserID(id) {
         const pipeline = [
             {
                 '$match': {
-                    'username': `${username}`
+                    '_id': new Types.ObjectId(id)
                 }
-            },
-            {
+            }, {
                 '$lookup': {
                     'from': 'posts',
                     'localField': 'posts',
                     'foreignField': '_id',
                     'as': 'posts'
                 }
-            },
-            {
-                '$unwind': {
-                    'path': '$posts',
-                    'preserveNullAndEmptyArrays': true
-                }
-            },
-            {
-                '$group': {
-                    '_id': '$_id',
-                    'name': {
-                        '$first': '$name'
-                    },
-                    'username': {
-                        '$first': '$username'
-                    },
-                    'photo': {
-                        '$first': '$photo'
-                    },
-                    'posts': {
-                        '$push': '$posts.posts'
-                    }
-                }
-            },
-            {
-                '$unwind': {
-                    'path': '$posts',
-                    'preserveNullAndEmptyArrays': true
-                }
-            },
-            {
-                '$replaceRoot': {
-                    'newRoot': {
-                        '$mergeObjects': [
-                            '$$ROOT', {
-                                'posts': '$posts'
-                            }
-                        ]
-                    }
-                }
-            },
-            {
+            }, {
                 '$project': {
                     '_id': 1,
-                    'name': 1,
                     'username': 1,
                     'photo': 1,
-                    'posts': 1
+                    'posts': 1,
                 }
             }
         ]
         const userWithPosts = await this.userModel.aggregate(pipeline).exec()
         console.log(userWithPosts);
-        
-        // const posts = userWithPosts[0]
-        // if (!posts) {
-        //     throw new NotFoundException(`No Posts Found`)
-        // }
+
         return userWithPosts[0];
     }
 }

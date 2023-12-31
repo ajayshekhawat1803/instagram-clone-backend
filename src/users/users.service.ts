@@ -44,10 +44,6 @@ export class UserService {
             photo: '',
             bio: ''
         });
-        const posts = await this.PostsModel.create({ user: result._id })
-
-        // Use bracket notation to add the 'posts' property
-        result.posts = posts._id;
 
         // Save the updated user
         await result.save();
@@ -103,74 +99,34 @@ export class UserService {
 
     // Get User details by userId
     async getUserByID(id): Promise<Object | null> {
-        try {
-            id = new Types.ObjectId(id)
-        } catch (error) {
-            throw new UnprocessableEntityException(`Please provide a valid User ID`)
-        }
-       const pipeline = [
+        const pipeline = [
             {
-                $match: {
-                    _id: id
+                '$match': {
+                    '_id': new Types.ObjectId(id)
                 }
-            },
-            {
-                $lookup: {
-                    from: 'posts',
-                    localField: 'posts',
-                    foreignField: '_id',
-                    as: 'posts'
+            }, {
+                '$lookup': {
+                    'from': 'posts',
+                    'localField': 'posts',
+                    'foreignField': '_id',
+                    'as': 'posts'
                 }
-            },
-            {
-                $unwind: {
-                    path: '$posts',
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $group: {
-                    _id: '$_id',
-                    name: { $first: '$name' },
-                    password: { $first: '$password' },
-                    email: { $first: '$email' },
-                    username: { $first: '$username' },
-                    photo: { $first: '$photo' },
-                    bio: { $first: '$bio' },
-                    followers: { $first: '$followers' },
-                    followings: { $first: '$followings' },
-                    createdAt: { $first: '$createdAt' },
-                    updatedAt: { $first: '$updatedAt' },
-                    posts: { $push: '$posts.posts' }
-                }
-            },
-            {
-                $unwind: {
-                    path: '$posts',
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $replaceRoot: { newRoot: { $mergeObjects: [ '$$ROOT', { posts: '$posts' } ] } }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    email: 1,
-                    username: 1,
-                    photo: 1,
-                    bio: 1,
-                    followers: 1,
-                    followings: 1,
-                    posts: 1
+            }, {
+                '$project': {
+                    '_id': 1,
+                    'name': 1,
+                    'username': 1,
+                    'photo': 1,
+                    'bio': 1,
+                    'posts': 1,
+                    'followers': 1,
+                    'followings': 1
                 }
             }
-        ];
-        
-        const check = await this.UserModel.aggregate(pipeline).exec()
+        ]
+        let check = await this.UserModel.aggregate(pipeline).exec()
         if (!check[0]) {
-            throw new HttpException(`No used Found`, HttpStatus.NOT_FOUND)
+            throw new NotFoundException(`No user found`)
         }
         return check[0];
     }
@@ -178,64 +134,30 @@ export class UserService {
     async getUserByUsername(username): Promise<Object | null> {
         const pipeline = [
             {
-                $match: {
-                    username: username
+                '$match': {
+                    'username': username
                 }
-            },
-            {
-                $lookup: {
-                    from: 'posts',
-                    localField: 'posts',
-                    foreignField: '_id',
-                    as: 'posts'
+            }, {
+                '$lookup': {
+                    'from': 'posts',
+                    'localField': 'posts',
+                    'foreignField': '_id',
+                    'as': 'posts'
                 }
-            },
-            {
-                $unwind: {
-                    path: '$posts',
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $group: {
-                    _id: '$_id',
-                    name: { $first: '$name' },
-                    password: { $first: '$password' },
-                    email: { $first: '$email' },
-                    username: { $first: '$username' },
-                    photo: { $first: '$photo' },
-                    bio: { $first: '$bio' },
-                    followers: { $first: '$followers' },
-                    followings: { $first: '$followings' },
-                    createdAt: { $first: '$createdAt' },
-                    updatedAt: { $first: '$updatedAt' },
-                    posts: { $push: '$posts.posts' }
-                }
-            },
-            {
-                $unwind: {
-                    path: '$posts',
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
-                $replaceRoot: { newRoot: { $mergeObjects: [ '$$ROOT', { posts: '$posts' } ] } }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    name: 1,
-                    email: 1,
-                    username: 1,
-                    photo: 1,
-                    bio: 1,
-                    followers: 1,
-                    followings: 1,
-                    posts: 1
+            }, {
+                '$project': {
+                    '_id': 1,
+                    'name': 1,
+                    'username': 1,
+                    'photo': 1,
+                    'bio': 1,
+                    'posts': 1,
+                    'followers': 1,
+                    'followings': 1
                 }
             }
-        ];
-        
+        ]
+
         const check = await this.UserModel.aggregate(pipeline).exec()
 
         if (!check[0]) {
