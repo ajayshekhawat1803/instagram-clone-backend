@@ -3,17 +3,16 @@ import { User } from './model/users.model';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/auth/dto/auth.dto';
 import { UpdateUserDto } from './dto/users.dto';
-import { Posts } from 'src/posts/model/posts.model';
+import { UserFeed } from 'src/user-feed/model/user-feed.model';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectModel(User.name)
         private readonly UserModel: Model<User>,
-        @InjectModel(Posts.name)
-        private readonly PostsModel: Model<Posts>
+        @InjectModel(UserFeed.name)
+        private readonly UserFeedModel: Model<UserFeed>
     ) { }
 
     // Register User
@@ -44,7 +43,10 @@ export class UserService {
             photo: '',
             bio: ''
         });
-
+        if (result._id) {
+            const feed = await this.UserFeedModel.create({ user: result._id })
+            result.feed = feed._id
+        }
         // Save the updated user
         await result.save();
 

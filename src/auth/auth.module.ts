@@ -6,10 +6,11 @@ import { User, UserSchema } from 'src/users/model/users.model';
 import { AuthController } from './auth.controller';
 import { UserService } from 'src/users/users.service';
 import { Posts, PostsSchema } from 'src/posts/model/posts.model';
+import { UserFeed, UserFeedSchema } from 'src/user-feed/model/user-feed.model';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Posts.name, schema: PostsSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Posts.name, schema: PostsSchema },{ name: UserFeed.name, schema: UserFeedSchema }]),
     JwtModule.register({
       // secret: process.env.SECREAT_KEY,
       secret: 'secretKey',

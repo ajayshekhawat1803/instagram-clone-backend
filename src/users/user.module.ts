@@ -4,9 +4,12 @@ import { UserService } from './users.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './model/users.model';
 import { Posts, PostsSchema } from 'src/posts/model/posts.model';
+import { UserFeed, UserFeedSchema } from 'src/user-feed/model/user-feed.model';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema },{ name: Posts.name, schema: PostsSchema }])],
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Posts.name, schema: PostsSchema },{ name: UserFeed.name, schema: UserFeedSchema }]),
+  ],
   controllers: [UserController],
   providers: [UserService]
 })
