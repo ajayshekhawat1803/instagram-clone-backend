@@ -132,33 +132,62 @@ export class UserService {
     }
 
     async getUserByUsername(username): Promise<Object | null> {
-        const pipeline = [
+        const pipeline: any[] = [
             {
-                '$match': {
-                    'username': username
-                }
-            }, {
-                '$lookup': {
-                    'from': 'posts',
-                    'localField': 'posts',
-                    'foreignField': '_id',
-                    'as': 'posts'
-                }
-            }, {
-                '$project': {
-                    '_id': 1,
-                    'name': 1,
-                    'username': 1,
-                    'photo': 1,
-                    'bio': 1,
-                    'posts': 1,
-                    'followers': 1,
-                    'followings': 1
-                }
-            }
-        ]
+                $match: {
+                    username: username,
+                },
+            },
+            {
+                $lookup: {
+                    from: 'posts',
+                    localField: 'posts',
+                    foreignField: '_id',
+                    as: 'posts',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$posts',
+                    preserveNullAndEmptyArrays: true, // Preserve documents with no matching posts
+                },
+            },
+            {
+                $sort: {
+                    'posts.createdAt': 1,
+                },
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    name: { $first: '$name' },
+                    username: { $first: '$username' },
+                    photo: { $first: '$photo' },
+                    bio: { $first: '$bio' },
+                    posts: { $push: '$posts' },
+                    followers: { $first: '$followers' },
+                    followings: { $first: '$followings' },
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    name: 1,
+                    username: 1,
+                    photo: 1,
+                    bio: 1,
+                    followers: 1,
+                    followings: 1,
+                    posts: {
+                        $ifNull: ['$posts', []], // If posts is null, return an empty array
+                    },
+                },
+            },
+        ] as any;
 
-        const check = await this.UserModel.aggregate(pipeline).exec()
+
+        const check: any = await this.UserModel.aggregate(pipeline).exec()
+        console.log(check);
 
         if (!check[0]) {
             throw new NotFoundException(`No user found`)
