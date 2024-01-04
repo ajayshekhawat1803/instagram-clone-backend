@@ -3,12 +3,15 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Posts } from "./model/posts.model";
 import { Model, Types } from "mongoose";
 import { User } from "src/users/model/users.model";
+import { UserFeed } from "src/user-feed/model/user-feed.model";
 
 @Injectable()
 export class PostsService {
     constructor(
         @InjectModel(Posts.name) private readonly postsModel: Model<Posts>,
-        @InjectModel(User.name) private readonly userModel: Model<User>) { }
+        @InjectModel(User.name) private readonly userModel: Model<User>,
+        @InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>,
+    ) { }
 
     // Create the post
     async createPost(userfromrequest, data, Postfiles) {
@@ -39,6 +42,14 @@ export class PostsService {
                 { $push: { posts: result._id } },
                 { new: true }
             );
+            const followers = userUpdate.followers
+            followers.map(async (follower) => {
+                await this.userFeedModel.findOneAndUpdate(
+                    { user: follower },
+                    { $push: { feed: { postId: result._id, user: user } } },
+                    { new: true }
+                )
+            })
         }
         return result
     }

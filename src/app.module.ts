@@ -16,6 +16,7 @@ import { SearchModule } from './search/search.module';
 import { followingsModule } from './followings/followings.module';
 import { LikesModule } from './like-unlike/Likes.module';
 import { CommentsModule } from './comments/comments.module';
+import { UserFeedModule } from './user-feed/user-feed.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { CommentsModule } from './comments/comments.module';
     followingsModule,
     SearchModule,
     LikesModule,
-    CommentsModule
+    CommentsModule,
+    UserFeedModule
   ],
   controllers: [AppController],
   providers: [AppService],
