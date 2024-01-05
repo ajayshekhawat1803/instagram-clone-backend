@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { NotFoundError } from 'rxjs';
 import { Posts } from 'src/posts/model/posts.model';
+import { User } from 'src/users/model/users.model';
 
 @Injectable()
 export class CommentsService {
     constructor(
-        @InjectModel(Posts.name) private readonly postsModel: Model<Posts>
+        @InjectModel(Posts.name) private readonly postsModel: Model<Posts>,
+        @InjectModel(Posts.name) private readonly UserModel: Model<User>,
     ) { }
 
 
@@ -18,7 +20,7 @@ export class CommentsService {
                 '_id': new Types.ObjectId(postId)
             },
             {
-                $addToSet: {
+                $push: {
                     'metaData.comments': { user: new Types.ObjectId(reqUser), comment: comment }
                 }
             },
@@ -28,6 +30,20 @@ export class CommentsService {
         )
         if (!postDocument) {
             throw new NotFoundException(`No relevent Post Found`)
+        }
+        // Add Comment Notification
+        if (postOwnerId !== reqUser && postOwnerId && reqUser) {
+            const notification = await this.UserModel.findByIdAndUpdate(
+                postOwnerId,
+                {
+                    $push: {
+                        'notifications': { from: new Types.ObjectId(reqUser), type: "comment", postId: new Types.ObjectId(postId) }
+                    }
+                },
+                {
+                    new: true
+                }
+            )
         }
         return postDocument
     }

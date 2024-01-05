@@ -47,6 +47,9 @@ export class User extends Document {
 
     @Prop({ type: mongoose.Schema.Types.ObjectId })
     stories: mongoose.Schema.Types.ObjectId;
+
+    @Prop({type:Array<{}>,default:[]})
+    notifications:Array<{}>
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

@@ -15,10 +15,24 @@ export class UserFeedController {
     async findAll(@Req() req, @Query('page') page = 1, @Query('pageSize') pageSize = 25) {
         const userId = req.user._id        
         const skip = page === 0 ? 0 : (page - 1) * pageSize;
-        const feed = await this.UserFeedService.findAllPaginated( userId,skip, pageSize);
+        let feed = await this.UserFeedService.findAllPaginated( userId,skip, pageSize);
+        feed.feed = this.advancedShuffleArray(feed.feed)
         // const totalLeads = await this.leadService.countLeads(req.headers.slug);
         // const totalPage = Math.ceil(totalLeads / pageSize);
         // return { feed, totalLeads, totalPage, currentPage: page };
+
         return { ...feed, currentPage: page };
+    }
+
+
+     advancedShuffleArray(array) {
+        let currentIndex = array.length;
+        while (currentIndex !== 0) {
+            
+            const randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
     }
 }

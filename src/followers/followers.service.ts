@@ -57,6 +57,20 @@ export class followersService {
       )
       throw new UnprocessableEntityException(`Other User Does not exists in real`)
     }
+
+    // Add Follow Notification
+    const notification = await this.userModel.findByIdAndUpdate(
+      other,
+      {
+        $push: {
+          'notifications': { from: new Types.ObjectId(self), type: "follow" }
+        }
+      },
+      {
+        new: true
+      }
+    )
+
     return UpdateOther?.followers
   }
 
