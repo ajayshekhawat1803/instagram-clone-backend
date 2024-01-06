@@ -9,7 +9,7 @@ import { User } from "src/users/model/users.model";
 export class followersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
-    @InjectModel(Posts.name) private readonly PostsModel: Model<User>,
+    @InjectModel(Posts.name) private readonly PostsModel: Model<Posts>,
     @InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>,
   ) { }
 
@@ -59,17 +59,9 @@ export class followersService {
     }
 
     // Add Follow Notification
-    const notification = await this.userModel.findByIdAndUpdate(
-      other,
-      {
-        $push: {
-          'notifications': { from: new Types.ObjectId(self), type: "follow" }
-        }
-      },
-      {
-        new: true
-      }
-    )
+    await this.userModel.findByIdAndUpdate(other, { $pull: { 'notifications': { from: new Types.ObjectId(self), type: "follow", } } }, { new: true })
+    await this.userModel.findByIdAndUpdate(other, { $push: { 'notifications': { $each: [{ from: new Types.ObjectId(self), type: "follow" }], $position: 0, $slice: 100, } } }, { new: true })
+    // $push: { 'notifications': { from: new Types.ObjectId(self), type: "follow" }}
 
     return UpdateOther?.followers
   }

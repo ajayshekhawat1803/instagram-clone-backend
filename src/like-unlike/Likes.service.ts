@@ -8,7 +8,7 @@ import { User } from "src/users/model/users.model";
 export class LikesService {
     constructor(
         @InjectModel(Posts.name) private readonly PostsModel: Model<Posts>,
-        @InjectModel(Posts.name) private readonly UserModel: Model<User>
+        @InjectModel(User.name) private readonly UserModel: Model<User>
     ) { }
 
     async handleLikes(reqUser, postId, postOwnerId) {
@@ -63,17 +63,8 @@ export class LikesService {
 
             // Add Like Notification
             if (postOwnerId !== reqUser && postOwnerId && reqUser) {
-                const notification = await this.UserModel.findByIdAndUpdate(
-                    postOwnerId,
-                    {
-                        $addToSet: {
-                            'notifications': { from: new Types.ObjectId(reqUser), type: "like", postId: new Types.ObjectId(postId) }
-                        }
-                    },
-                    {
-                        new: true
-                    }
-                )
+                await this.UserModel.findOneAndUpdate({ _id: postOwnerId }, { $pull: { 'notifications': { from: new Types.ObjectId(reqUser), type: "like", postId: new Types.ObjectId(postId) } } }, { new: true })
+                await this.UserModel.findOneAndUpdate({ _id: postOwnerId }, { $push: { 'notifications': { $each: [{ from: new Types.ObjectId(reqUser), type: "like", postId: new Types.ObjectId(postId) }], $position: 0, $slice: 100, } } }, { new: true })
             }
         }
 

@@ -9,7 +9,7 @@ import { User } from 'src/users/model/users.model';
 export class CommentsService {
     constructor(
         @InjectModel(Posts.name) private readonly postsModel: Model<Posts>,
-        @InjectModel(Posts.name) private readonly UserModel: Model<User>,
+        @InjectModel(User.name) private readonly UserModel: Model<User>,
     ) { }
 
 
@@ -31,20 +31,15 @@ export class CommentsService {
         if (!postDocument) {
             throw new NotFoundException(`No relevent Post Found`)
         }
+
+
         // Add Comment Notification
         if (postOwnerId !== reqUser && postOwnerId && reqUser) {
-            const notification = await this.UserModel.findByIdAndUpdate(
-                postOwnerId,
-                {
-                    $push: {
-                        'notifications': { from: new Types.ObjectId(reqUser), type: "comment", postId: new Types.ObjectId(postId) }
-                    }
-                },
-                {
-                    new: true
-                }
-            )
+            await this.UserModel.findByIdAndUpdate(postOwnerId, { $push: { 'notifications': { $each: [{ from: new Types.ObjectId(reqUser), type: "comment", postId: new Types.ObjectId(postId) }], $position: 0, $slice: 100, } } }, { new: true })
+            // $push: {'notifications': { from: new Types.ObjectId(reqUser), type: "comment", postId: new Types.ObjectId(postId) }}
         }
+
+        
         return postDocument
     }
 
