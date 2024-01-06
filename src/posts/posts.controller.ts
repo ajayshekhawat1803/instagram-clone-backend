@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpStatus, NotFoundException, Param, Post, Req, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, NotFoundException, Param, Post, Req, UnprocessableEntityException, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { PostsService } from "./posts.service";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { CreatePostDto } from "./dto/posts.dto";
 import { multerConfig } from "src/multer/multer.config";
 import { InjectModel } from "@nestjs/mongoose";
 import { User } from "src/users/model/users.model";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 
 @Controller('posts')
@@ -66,6 +66,37 @@ export class PostsController {
         return {
           data: posts,
           message: `Successfully fetched all posts`
+        }
+      }
+      else {
+        req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return {
+          data: [],
+          message: `Something went wrong`
+        }
+      }
+    } catch (error) {
+      req.res.status(error.status || 500)
+      return {
+        data: null,
+        message: `${error.message}`
+      }
+    }
+  }
+
+  @Get('post/:postId')
+  async getPostByID(@Param('postId') postId, @Req() req) {
+    try {
+      try {
+        new Types.ObjectId(postId)
+      } catch (error) {
+        throw new UnprocessableEntityException('Invalid Post Id')
+      }
+      const posts = await this.PostsService.getPostByPostID(postId)
+      if (posts) {
+        return {
+          data: posts,
+          message: `Successfully fetched  posts`
         }
       }
       else {

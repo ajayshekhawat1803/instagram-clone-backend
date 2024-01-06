@@ -81,4 +81,22 @@ export class PostsService {
 
         return userWithPosts[0];
     }
+    async getPostByPostID(id) {
+        const pipeline = [
+            {
+                '$match': {
+                    '_id': new Types.ObjectId(id)
+                }
+            }, {
+                '$project': {
+                    '_id': 1,
+                    'files':1,
+                    'user':1
+                }
+            }
+        ]
+        const Post = await this.postsModel.aggregate(pipeline).exec()
+
+        return Post[0];
+    }
 }

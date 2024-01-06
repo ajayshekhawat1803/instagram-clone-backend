@@ -13,7 +13,7 @@ export class UserController {
     @Patch('edit/:id')
     async editUser(@Body() data: UpdateUserDto, @Param('id') id: Types.ObjectId, @Req() req) {
         try {
-            const result = await this.userServices.editUser(data, id,req)
+            const result = await this.userServices.editUser(data, id, req)
             if (result) {
                 return {
                     data: result,
@@ -39,6 +39,31 @@ export class UserController {
     async getUser(@Param('id') id, @Req() req) {
         try {
             const result = await this.userServices.getUserByID(id)
+            if (result) {
+                return {
+                    data: result,
+                    message: `Fetched User Details`
+                }
+            } else {
+                req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                return {
+                    data: result,
+                    message: `Something went wrong`
+                }
+            }
+        } catch (error) {
+            req.res.status(error.status || 500)
+            return {
+                data: null,
+                message: `${error.message}`
+            }
+        }
+    }
+
+    @Get('get-for-notification/:id')
+    async getUserForNotifications(@Param('id') id, @Req() req) {
+        try {
+            const result = await this.userServices.getUserByIDForNotifications(id)
             if (result) {
                 return {
                     data: result,

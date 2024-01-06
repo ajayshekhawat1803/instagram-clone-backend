@@ -132,6 +132,28 @@ export class UserService {
         }
         return check[0];
     }
+    // Get User details by userId for notifications
+    async getUserByIDForNotifications(id): Promise<Object | null> {
+        const pipeline = [
+            {
+                '$match': {
+                    '_id': new Types.ObjectId(id)
+                }
+            },  {
+                '$project': {
+                    '_id': 1,
+                    'username': 1,
+                    'photo': 1,
+                    'followers':1
+                }
+            }
+        ]
+        let check = await this.UserModel.aggregate(pipeline).exec()
+        if (!check[0]) {
+            throw new NotFoundException(`No user found`)
+        }
+        return check[0];
+    }
 
     async getUserByUsername(username): Promise<Object | null> {
         const pipeline: any[] = [
