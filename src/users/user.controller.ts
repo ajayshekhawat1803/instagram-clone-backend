@@ -109,4 +109,36 @@ export class UserController {
             }
         }
     }
+
+    @Get('get-all-users')
+    async getAllUsers(@Req() req) {
+        try {
+            const result = await this.userServices.getAllUsers()
+            if (result.length > 0) {
+                return {
+                    data: result,
+                    message: `Fetched all users Details`
+                }
+            }
+            if (result.length === 0) {
+                return {
+                    data: result,
+                    message: `No Users`
+                }
+            } 
+            else {
+                req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                return {
+                    data: result,
+                    message: `Something went wrong`
+                }
+            }
+        } catch (error) {
+            req.res.status(error.status || 500)
+            return {
+                data: null,
+                message: `${error.message}`
+            }
+        }
+    }
 }

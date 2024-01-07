@@ -87,11 +87,28 @@ export class PostsService {
                 '$match': {
                     '_id': new Types.ObjectId(id)
                 }
+            },
+            {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'user',
+                    'foreignField': '_id',
+                    'as': 'userData'
+                }
+            }, {
+                '$unwind': {
+                    'path': '$userData',
+                    'preserveNullAndEmptyArrays': true
+                }
             }, {
                 '$project': {
                     '_id': 1,
-                    'files':1,
-                    'user':1
+                    'caption': 1,
+                    'metaData': 1,
+                    'user': 1,
+                    'username': '$userData.username',
+                    'userPhoto': '$userData.photo',
+                    'files': 1
                 }
             }
         ]

@@ -139,12 +139,12 @@ export class UserService {
                 '$match': {
                     '_id': new Types.ObjectId(id)
                 }
-            },  {
+            }, {
                 '$project': {
                     '_id': 1,
                     'username': 1,
                     'photo': 1,
-                    'followers':1
+                    'followers': 1
                 }
             }
         ]
@@ -217,5 +217,25 @@ export class UserService {
             throw new NotFoundException(`No user found`)
         }
         return check[0];
+    }
+
+
+
+    async getAllUsers() {
+        let allUsers = await this.UserModel.find({}, { _id: 1, username: 1, photo: 1, name: 1 ,followers:1})
+        allUsers = this.advancedShuffleArray(allUsers)
+        return allUsers
+    }
+
+
+    advancedShuffleArray(array) {
+        let currentIndex = array.length;
+        while (currentIndex !== 0) {
+
+            const randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
     }
 }
