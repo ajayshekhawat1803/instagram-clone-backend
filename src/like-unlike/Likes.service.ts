@@ -21,7 +21,7 @@ export class LikesService {
 
         let postDocument;
         if (check) {
-            console.log("Like removed");
+            // console.log("Like removed");
             postDocument = await this.PostsModel.findOneAndUpdate(
                 {
                     user: postOwnerId,
@@ -41,7 +41,7 @@ export class LikesService {
             }
         }
         else {
-            console.log("Like added");
+            // console.log("Like added");
 
             postDocument = await this.PostsModel.findOneAndUpdate(
                 {

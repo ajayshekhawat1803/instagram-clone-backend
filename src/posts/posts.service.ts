@@ -77,7 +77,7 @@ export class PostsService {
             }
         ]
         const userWithPosts = await this.userModel.aggregate(pipeline).exec()
-        console.log(userWithPosts);
+        // console.log(userWithPosts);
 
         return userWithPosts[0];
     }

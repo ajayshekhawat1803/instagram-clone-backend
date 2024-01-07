@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 export class UpdateUserDto {
 
     @IsOptional()
-    @IsNumber()
     mobile: number;
 
     @IsOptional()

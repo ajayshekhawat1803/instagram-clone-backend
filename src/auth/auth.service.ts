@@ -51,7 +51,7 @@ export class AuthService {
 
     async AddAdditionalInfo(data) {
         let { photo, dob, mobile, bio, id } = data;
-        console.log(data);
+        // console.log(data);
         try {
             id=new Types.ObjectId(id)
         } catch (error) {

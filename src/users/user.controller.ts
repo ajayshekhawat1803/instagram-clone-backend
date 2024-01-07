@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req, UnauthorizedException, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UserService } from './users.service';
 import { UpdateUserDto } from './dto/users.dto';
 import { Types } from 'mongoose';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { multerConfig } from 'src/multer/multer.config';
 
 @Controller('user')
 export class UserController {
@@ -10,10 +12,18 @@ export class UserController {
     ) { }
 
 
-    @Patch('edit/:id')
-    async editUser(@Body() data: UpdateUserDto, @Param('id') id: Types.ObjectId, @Req() req) {
+    @Patch('edit')
+    @UseInterceptors(FileInterceptor('photo', multerConfig))
+    async editUser(@Body() data: UpdateUserDto, @Req() req, @UploadedFile() file) {
         try {
-            const result = await this.userServices.editUser(data, id, req)
+            if (file) {
+                data.photo = file.filename
+            }
+            const userID = req.user._id
+            if (!userID) {
+                throw new UnauthorizedException('Not authorised for this action')
+            }
+            const result = await this.userServices.editUser(data, userID, req)
             if (result) {
                 return {
                     data: result,
@@ -60,6 +70,34 @@ export class UserController {
         }
     }
 
+    @Get('getuser-for-edit')
+    async getUserForEdit(@Req() req) {
+        try {
+            const userID = req.user._id
+            if (!userID) {
+                throw new UnauthorizedException('Not authorised for this action')
+            }
+            const result = await this.userServices.getUserForEdit(userID)
+            if (result) {
+                return {
+                    data: result,
+                    message: `Fetched User Details`
+                }
+            } else {
+                req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                return {
+                    data: result,
+                    message: `Something went wrong`
+                }
+            }
+        } catch (error) {
+            req.res.status(error.status || 500)
+            return {
+                data: null,
+                message: `${error.message}`
+            }
+        }
+    }
     @Get('get-for-notification/:id')
     async getUserForNotifications(@Param('id') id, @Req() req) {
         try {
@@ -125,7 +163,7 @@ export class UserController {
                     data: result,
                     message: `No Users`
                 }
-            } 
+            }
             else {
                 req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 return {

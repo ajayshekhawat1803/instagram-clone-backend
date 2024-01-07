@@ -95,7 +95,7 @@ export class CommentsService {
             }
         ]
         const postDocument = await this.postsModel.aggregate(pipeline).exec()
-        console.log(postDocument);
+        // console.log(postDocument);
 
         if (postDocument.length < 1) {
             throw new NotFoundException(`No Post Found`)

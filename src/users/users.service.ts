@@ -56,12 +56,14 @@ export class UserService {
 
     // Update User's details
     async editUser(data: UpdateUserDto, id, req): Promise<Object | null> {
+        // console.log(data,"====================================");
+        
         try {
             id = new Types.ObjectId(id)
         } catch (error) {
             throw new UnprocessableEntityException(`Provide valid User ID`)
         }
-        if (req.user.user._id !== id.toString()) {
+        if (req.user._id !== id.toString()) {
             throw new UnauthorizedException(`Unauthorised to update User`)
         }
         const check = await this.UserModel.findOne({ _id: id })
@@ -211,18 +213,27 @@ export class UserService {
 
 
         const check: any = await this.UserModel.aggregate(pipeline).exec()
-        console.log(check);
+        // console.log(check);
 
         if (!check[0]) {
             throw new NotFoundException(`No user found`)
         }
         return check[0];
     }
+    async getUserForEdit(userID): Promise<Object | null> {
+        const check: any = await this.UserModel.findOne({ _id: userID }, { password: 0, feed: 0, notifications: 0, followings: 0, followers: 0, posts: 0 }).exec()
+        // console.log(check);
+
+        if (!check) {
+            throw new NotFoundException(`No user found`)
+        }
+        return check;
+    }
 
 
 
     async getAllUsers() {
-        let allUsers = await this.UserModel.find({}, { _id: 1, username: 1, photo: 1, name: 1 ,followers:1})
+        let allUsers = await this.UserModel.find({}, { _id: 1, username: 1, photo: 1, name: 1, followers: 1 })
         allUsers = this.advancedShuffleArray(allUsers)
         return allUsers
     }
