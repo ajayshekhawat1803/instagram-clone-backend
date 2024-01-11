@@ -6,6 +6,7 @@ import { multerConfig } from "src/multer/multer.config";
 import { InjectModel } from "@nestjs/mongoose";
 import { User } from "src/users/model/users.model";
 import { Model, Types } from "mongoose";
+import { AWSConfigsS3 } from "src/s-3/s3-config";
 
 
 @Controller('posts')
@@ -13,14 +14,22 @@ export class PostsController {
 
   constructor(
     private readonly PostsService: PostsService,
-    @InjectModel(User.name) private readonly userModel: Model<User>) {
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    private readonly AWSs3Manager: AWSConfigsS3) {
   }
 
   @Post('create')
-  @UseInterceptors(FilesInterceptor('posts', 5, multerConfig))
+  @UseInterceptors(FilesInterceptor('posts', 1))
   async creaePost(@Req() req, @Body() data: CreatePostDto, @UploadedFiles() files) {
     try {
 
+      const UploadedFiles = await this.AWSs3Manager.addMultipleFiles(files)
+      console.log(UploadedFiles);
+
+      // console.log(await this.AWSs3Manager.generatePresignedUrl("posts/posts-1704934771182-465622589.png"));
+      // return await this.AWSs3Manager.generatePresignedUrl("cyclic/dist/hilarious-lingerie-colt-lambda.zip")
+
+      // return await this.AWSs3Manager.getAllS3Files()
       if (files?.length < 1) {
         req.res.status(422)
         return {
@@ -28,20 +37,21 @@ export class PostsController {
           message: `Upload at least 1 image`
         }
       }
-      const result = await this.PostsService.createPost(req?.user?._id, data, files)
-      if (result) {
-        return {
-          data: result,
-          message: `Successfully Posted`
-        }
-      }
-      else {
-        req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        return {
-          data: null,
-          message: `Something went wrong`
-        }
-      }
+      return files
+      // const result = await this.PostsService.createPost(req?.user?._id, data, files)
+      // if (result) {
+      //   return {
+      //     data: result,
+      //     message: `Successfully Posted`
+      //   }
+      // }
+      // else {
+      //   req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+      //   return {
+      //     data: null,
+      //     message: `Something went wrong`
+      //   }
+      // }
     } catch (error) {
       req.res.status(error.status || 500)
       return {
