@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import { S3 } from "aws-sdk";
 import { Types } from "mongoose";
 import { extname } from "path";
@@ -22,15 +22,21 @@ export class AWSConfigsS3 {
                 Body: file.buffer,
                 ContentType: file.mimetype,
             };
-
-            const uploadedfile = await s3.upload(params).promise();
+            let uploadedfile: Object;
+            try {
+                uploadedfile = await s3.upload(params).promise();
+            } catch (error) {
+                console.log("filemanager error -",error);
+                
+                throw new BadRequestException("Faild to upload file")
+            }
 
             uploadedFilesData.push(uploadedfile)
         });
 
         await Promise.all(uploadPromises);
 
-        return uploadedFilesData
+        return uploadedFilesData;
     }
 
 

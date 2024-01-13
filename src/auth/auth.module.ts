@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { UserService } from 'src/users/users.service';
 import { Posts, PostsSchema } from 'src/posts/model/posts.model';
 import { UserFeed, UserFeedSchema } from 'src/user-feed/model/user-feed.model';
+import { AWSConfigsS3 } from 'src/s-3/s3-config';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { UserFeed, UserFeedSchema } from 'src/user-feed/model/user-feed.model';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserService]
+  providers: [AuthService, UserService,AWSConfigsS3]
 })
 export class AuthModule { }

@@ -17,6 +17,7 @@ import { followingsModule } from './followings/followings.module';
 import { LikesModule } from './like-unlike/Likes.module';
 import { CommentsModule } from './comments/comments.module';
 import { UserFeedModule } from './user-feed/user-feed.module';
+import { FilesModule } from './s-3/Files.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { UserFeedModule } from './user-feed/user-feed.module';
     SearchModule,
     LikesModule,
     CommentsModule,
-    UserFeedModule
+    UserFeedModule,
+    FilesModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -23,13 +23,6 @@ export class PostsController {
   async creaePost(@Req() req, @Body() data: CreatePostDto, @UploadedFiles() files) {
     try {
 
-      const UploadedFiles = await this.AWSs3Manager.addMultipleFiles(files)
-      console.log(UploadedFiles);
-
-      // console.log(await this.AWSs3Manager.generatePresignedUrl("posts/posts-1704934771182-465622589.png"));
-      // return await this.AWSs3Manager.generatePresignedUrl("cyclic/dist/hilarious-lingerie-colt-lambda.zip")
-
-      // return await this.AWSs3Manager.getAllS3Files()
       if (files?.length < 1) {
         req.res.status(422)
         return {
@@ -37,21 +30,21 @@ export class PostsController {
           message: `Upload at least 1 image`
         }
       }
-      return files
-      // const result = await this.PostsService.createPost(req?.user?._id, data, files)
-      // if (result) {
-      //   return {
-      //     data: result,
-      //     message: `Successfully Posted`
-      //   }
-      // }
-      // else {
-      //   req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
-      //   return {
-      //     data: null,
-      //     message: `Something went wrong`
-      //   }
-      // }
+      const UploadedFiles = await this.AWSs3Manager.addMultipleFiles(files)
+      const result = await this.PostsService.createPost(req?.user?._id, data, UploadedFiles)
+      if (result) {
+        return {
+          data: result,
+          message: `Successfully Posted`
+        }
+      }
+      else {
+        req.res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return {
+          data: null,
+          message: `Something went wrong`
+        }
+      }
     } catch (error) {
       req.res.status(error.status || 500)
       return {

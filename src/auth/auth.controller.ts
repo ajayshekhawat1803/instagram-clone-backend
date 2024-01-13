@@ -1,13 +1,17 @@
-import { Body, Controller, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Param, Post, Req, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AddDetailsDto, CreateUserDto, LoginDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
+import { AWSConfigsS3 } from 'src/s-3/s3-config';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly authService: AuthService,
+        private readonly AWSs3Manager: AWSConfigsS3
+    ) { }
 
     @Post('login')
     async login(@Body() data: LoginDto, @Req() req) {
@@ -59,27 +63,7 @@ export class AuthController {
     }
 
     @Post('signup/add-details/:id')
-    @UseInterceptors(FileInterceptor('photo', {
-        storage: diskStorage({
-            destination: (req, file, callback) => {
-                const userId = req.params?.id;
-                if (userId) {
-                    const destination = `./uploads/${userId}/${file.fieldname}`;
-                    if (!fs.existsSync(destination)) {
-                        fs.mkdirSync(destination, { recursive: true });
-                    }
-                    callback(null, destination);
-                } else {
-                    callback(new Error('User ID missing'), null);
-                }
-            },
-            filename: (req, file, callback) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                const extension = file.originalname.split('.').pop(); // get the file extension
-                const filename = `${uniqueSuffix}.${extension}`;
-                callback(null, filename);
-            },
-        }),
+    @UseInterceptors(FilesInterceptor('photo', 1, {
         limits: {
             fileSize: 1024 * 1024 * 5, // set a file size limit (in bytes) - here, 5MB
         },
@@ -93,9 +77,10 @@ export class AuthController {
             }
         },
     }))
-    async addAdditionalDetails(@Body() data: AddDetailsDto, @Req() req, @UploadedFile() photo, @Param('id') id) {
+    async addAdditionalDetails(@Body() data: AddDetailsDto, @Req() req, @UploadedFiles() photo, @Param('id') id) {
         try {
-            const result = await this.authService.AddAdditionalInfo({ ...data, photo:photo?.filename, id })
+            photo = await this.AWSs3Manager.addMultipleFiles(photo)
+            const result = await this.authService.AddAdditionalInfo({ ...data, photo: photo[0]?.key || "", id })
             if (result) {
                 return {
                     data: result,

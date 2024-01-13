@@ -18,7 +18,7 @@ export class User extends Document {
     @Prop()
     mobile: number;
 
-    @Prop()
+    @Prop({ type: Date })
     dob: string;
 
     @Prop()
@@ -30,7 +30,7 @@ export class User extends Document {
     @Prop({ type: Object })
     metaData: Object;
 
-    @Prop({ type: Array<mongoose.Schema.Types.ObjectId>,default:[] })
+    @Prop({ type: Array<mongoose.Schema.Types.ObjectId>, default: [] })
     posts: mongoose.Schema.Types.ObjectId[];
 
     @Prop({ type: Array, default: [] })
@@ -48,8 +48,8 @@ export class User extends Document {
     @Prop({ type: mongoose.Schema.Types.ObjectId })
     stories: mongoose.Schema.Types.ObjectId;
 
-    @Prop({type:Array<{}>,default:[]})
-    notifications:Array<{}>
+    @Prop({ type: Array<{}>, default: [] })
+    notifications: Array<{}>
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)

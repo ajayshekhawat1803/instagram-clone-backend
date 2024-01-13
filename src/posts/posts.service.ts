@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Posts } from "./model/posts.model";
 import { Model, Types } from "mongoose";
 import { User } from "src/users/model/users.model";
 import { UserFeed } from "src/user-feed/model/user-feed.model";
+import { AWSConfigsS3 } from "src/s-3/s3-config";
 
 @Injectable()
 export class PostsService {
@@ -22,7 +23,7 @@ export class PostsService {
         user = new Types.ObjectId(user)
         let files = []
         Postfiles.forEach(file => {
-            files.push(file.filename)
+            files.push(file.key)
         });
 
         const currentPost = {
@@ -37,19 +38,24 @@ export class PostsService {
         const result = await this.postsModel.create(currentPost)
 
         if (result._id) {
-            const userUpdate = await this.userModel.findByIdAndUpdate(
-                user,
+            const userUpdate = await this.userModel.findOneAndUpdate(
+                { _id: new Types.ObjectId(userfromrequest) },
                 { $push: { posts: result._id } },
                 { new: true }
-            );
-            const followers = userUpdate.followers
-            followers.map(async (follower) => {
-                await this.userFeedModel.findOneAndUpdate(
-                    { user: follower },
-                    { $push: { feed: { postId: result._id, user: user } } },
-                    { new: true }
-                )
-            })
+            ).exec();
+            if (!userUpdate) {
+                throw new UnprocessableEntityException("Failed to fetch user")
+            }
+            const followers = userUpdate?.followers
+            if (followers) {
+                followers.map(async (follower) => {
+                    await this.userFeedModel.findOneAndUpdate(
+                        { user: follower },
+                        { $push: { feed: { postId: result._id, user: user } } },
+                        { new: true }
+                    )
+                })
+            }
         }
         return result
     }
@@ -76,11 +82,17 @@ export class PostsService {
                 }
             }
         ]
-        const userWithPosts = await this.userModel.aggregate(pipeline).exec()
-        // console.log(userWithPosts);
-
+        let userWithPosts;
+        try {
+            userWithPosts = await this.userModel.aggregate(pipeline).exec()
+        } catch (error) {
+            throw new BadRequestException("Failed to get userData")
+        }
         return userWithPosts[0];
+
     }
+
+
     async getPostByPostID(id) {
         const pipeline = [
             {
@@ -113,7 +125,6 @@ export class PostsService {
             }
         ]
         const Post = await this.postsModel.aggregate(pipeline).exec()
-
         return Post[0];
     }
 }
