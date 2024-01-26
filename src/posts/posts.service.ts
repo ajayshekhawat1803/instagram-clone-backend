@@ -61,7 +61,7 @@ export class PostsService {
     }
 
     async getAllPostsByUserID(id) {
-        const pipeline = [
+        const pipeline: any = [
             {
                 '$match': {
                     '_id': new Types.ObjectId(id)
@@ -73,21 +73,27 @@ export class PostsService {
                     'foreignField': '_id',
                     'as': 'posts'
                 }
-            }, {
+            },
+            {
                 '$project': {
                     '_id': 1,
                     'username': 1,
                     'photo': 1,
                     'posts': 1,
                 }
-            }
+            },
+            // {
+            //     $sort: {
+            //         'posts.createdAt': 1,
+            //     }
+            // }
         ]
         let userWithPosts;
         try {
             userWithPosts = await this.userModel.aggregate(pipeline).exec()
         } catch (error) {
             throw new BadRequestException("Failed to get userData")
-        }
+        }       
         return userWithPosts[0];
 
     }

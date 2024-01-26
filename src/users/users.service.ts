@@ -180,7 +180,7 @@ export class UserService {
             },
             {
                 $sort: {
-                    'posts.createdAt': 1,
+                    'posts.createdAt': -1,
                 },
             },
             {
