@@ -2,10 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { UserFeed } from "./model/user-feed.model";
 import { Model, Types } from "mongoose";
+import { AWSConfigsS3 } from "src/s-3/s3-config";
 
 @Injectable()
 export class UserFeedService {
-    constructor(@InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>) { }
+    constructor(
+        @InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>,
+        private readonly s3Services: AWSConfigsS3,
+    ) { }
 
     async findAllPaginated(userId, skip, pageSize) {
         const pipeline = [
@@ -104,7 +108,18 @@ export class UserFeedService {
             // }
         ]
 
-        const feed = await this.userFeedModel.aggregate(pipeline).exec()
-        return feed[0];
+        let feed: any = await this.userFeedModel.aggregate(pipeline).exec()
+        feed = feed[0]
+        if (feed?.feed) {
+            feed.feed = await Promise.all(feed.feed?.map(async (post) => {
+                if (post.photo) {
+                    post.photo = await this.s3Services.generatePresignedUrl(post.photo)
+                }
+                post.files[0] = await this.s3Services.generatePresignedUrl(post.files[0])
+                return post;
+            }))
+        }
+
+        return feed;
     }
 }

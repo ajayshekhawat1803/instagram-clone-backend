@@ -17,10 +17,6 @@ export class UserFeedController {
         const skip = page === 0 ? 0 : (page - 1) * pageSize;
         let feed = await this.UserFeedService.findAllPaginated( userId,skip, pageSize);
         feed.feed = this.advancedShuffleArray(feed.feed)
-        // const totalLeads = await this.leadService.countLeads(req.headers.slug);
-        // const totalPage = Math.ceil(totalLeads / pageSize);
-        // return { feed, totalLeads, totalPage, currentPage: page };
-
         return { ...feed, currentPage: page };
     }
 

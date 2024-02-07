@@ -12,6 +12,7 @@ export class PostsService {
         @InjectModel(Posts.name) private readonly postsModel: Model<Posts>,
         @InjectModel(User.name) private readonly userModel: Model<User>,
         @InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>,
+        private readonly s3Services: AWSConfigsS3,
     ) { }
 
     // Create the post
@@ -93,7 +94,20 @@ export class PostsService {
             userWithPosts = await this.userModel.aggregate(pipeline).exec()
         } catch (error) {
             throw new BadRequestException("Failed to get userData")
-        }       
+        }
+        if (!userWithPosts[0]) {
+            throw new NotFoundException(`No user found`)
+        }
+        if (userWithPosts[0]?.photo) {
+            userWithPosts[0].photo = await this.s3Services.generatePresignedUrl(userWithPosts[0].photo)
+        }
+        userWithPosts[0].posts = await Promise.all(userWithPosts[0].posts.map(async (post) => {
+            post.files[0] = await this.s3Services.generatePresignedUrl(post.files[0])
+            return post;
+
+        }))
+
+
         return userWithPosts[0];
 
     }
@@ -130,7 +144,14 @@ export class PostsService {
                 }
             }
         ]
-        const Post = await this.postsModel.aggregate(pipeline).exec()
-        return Post[0];
+        let result: any = await this.postsModel.aggregate(pipeline).exec()
+        result = result[0];
+        if (result?.files[0]) {
+            result.files[0] = await this.s3Services.generatePresignedUrl(result.files[0])
+        }
+        if (result?.userPhoto) {
+            result.userPhoto = await this.s3Services.generatePresignedUrl(result.userPhoto)
+        }
+        return result;
     }
 }

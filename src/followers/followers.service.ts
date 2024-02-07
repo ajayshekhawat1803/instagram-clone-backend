@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException, UnprocessableEntityE
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { Posts } from "src/posts/model/posts.model";
+import { AWSConfigsS3 } from "src/s-3/s3-config";
 import { UserFeed } from "src/user-feed/model/user-feed.model";
 import { User } from "src/users/model/users.model";
 
@@ -11,7 +12,8 @@ export class followersService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Posts.name) private readonly PostsModel: Model<Posts>,
     @InjectModel(UserFeed.name) private readonly userFeedModel: Model<UserFeed>,
-  ) { }
+    private readonly s3Services: AWSConfigsS3,
+    ) { }
 
   // Method to start following the other user
   async startFollowing(req, data) {
@@ -162,9 +164,15 @@ export class followersService {
     const userWithFollowers = await this.userModel.aggregate(pipeline);
 
     const followers = userWithFollowers[0];
+    followers.followers = await Promise.all(followers?.followers?.map(async (user) => {
+      if (user.photo) {
+        user.photo = await this.s3Services.generatePresignedUrl(user.photo)
+      }
+      return user;
+    }))
 
     if (!followers) {
-      throw new NotFoundException(`No User Found`)
+      throw new NotFoundException(`No Followers Found`)
     }
     return followers;
   }

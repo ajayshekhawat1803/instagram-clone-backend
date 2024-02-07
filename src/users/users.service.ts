@@ -5,14 +5,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/users.dto';
 import { UserFeed } from 'src/user-feed/model/user-feed.model';
+import { AWSConfigsS3 } from 'src/s-3/s3-config';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectModel(User.name)
-        private readonly UserModel: Model<User>,
-        @InjectModel(UserFeed.name)
-        private readonly UserFeedModel: Model<UserFeed>
+        @InjectModel(User.name) private readonly UserModel: Model<User>,
+        @InjectModel(UserFeed.name) private readonly UserFeedModel: Model<UserFeed>,
+        private readonly s3Services: AWSConfigsS3,
     ) { }
 
     // Register User
@@ -57,7 +57,7 @@ export class UserService {
     // Update User's details
     async editUser(data: UpdateUserDto, id, req): Promise<Object | null> {
         // console.log(data,"====================================");
-        
+
         try {
             id = new Types.ObjectId(id)
         } catch (error) {
@@ -154,6 +154,9 @@ export class UserService {
         if (!check[0]) {
             throw new NotFoundException(`No user found`)
         }
+        if (check[0]?.photo) {
+            check[0].photo = await this.s3Services.generatePresignedUrl(check[0].photo)
+        }
         return check[0];
     }
 
@@ -213,28 +216,42 @@ export class UserService {
 
 
         const check: any = await this.UserModel.aggregate(pipeline).exec()
-        // console.log(check);
-
         if (!check[0]) {
             throw new NotFoundException(`No user found`)
         }
+        if (check[0]?.photo) {
+            check[0].photo = await this.s3Services.generatePresignedUrl(check[0].photo)
+        }
+        check[0].posts = await Promise.all(check[0].posts.map(async (post) => {
+            post.files[0] = await this.s3Services.generatePresignedUrl(post.files[0])
+            return post;
+
+        }))
         return check[0];
     }
+
+
     async getUserForEdit(userID): Promise<Object | null> {
         const check: any = await this.UserModel.findOne({ _id: userID }, { password: 0, feed: 0, notifications: 0, followings: 0, followers: 0, posts: 0 }).exec()
-        // console.log(check);
-
         if (!check) {
             throw new NotFoundException(`No user found`)
+        }
+        if (check?.photo) {
+            check.photo = await this.s3Services.generatePresignedUrl(check.photo)
         }
         return check;
     }
 
 
-
     async getAllUsers() {
         let allUsers = await this.UserModel.find({}, { _id: 1, username: 1, photo: 1, name: 1, followers: 1 })
         allUsers = this.advancedShuffleArray(allUsers)
+        allUsers = await Promise.all(allUsers.map(async (user) => {
+            if (user.photo) {
+                user.photo = await this.s3Services.generatePresignedUrl(user.photo)
+            }
+            return user;
+        }))
         return allUsers
     }
 

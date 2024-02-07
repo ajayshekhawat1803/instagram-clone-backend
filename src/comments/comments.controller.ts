@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpStatus, Param, Post, Query, Req, UnprocessableEntityException } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpStatus, Post, Query, Req, UnprocessableEntityException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { AddCommentDto } from './dto/comments.dto';
 import { Types } from 'mongoose';

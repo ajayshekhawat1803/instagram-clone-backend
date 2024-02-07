@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Param, Post, Req, UnprocessableEntityException, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AddDetailsDto, CreateUserDto, LoginDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
@@ -41,6 +41,9 @@ export class AuthController {
     @Post('signup')
     async signup(@Body() data: CreateUserDto, @Req() req) {
         try {
+            if (data.username.split(" ").length>1) {
+                throw new UnprocessableEntityException("username can'nt contain spaces")
+            }
             const result = await this.authService.registerUser(data)
             if (result) {
                 return {
